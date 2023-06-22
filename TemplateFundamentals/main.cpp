@@ -37,49 +37,29 @@ namespace definingFunctionTemplates
     }
 }
 
-template <typename T>
-class wrapper
+namespace definingClassTemplates
 {
-public:
-    wrapper(T const v): value(v)
-    {}
-
-    T const& get() const { return value; }
-
-    template <typename U>
-    U as() const
-    {
-        return static_cast<U>(value);
-    }
-private:
-    T value;
-};
-
-template <typename T = int>
-class wrapper;
-
-// template <typename ...T>
-// class wrapper;
-
-template <typename T>
-class composition_v1
-{
-public:
-    T add(T const a, T const b)
-    {
-        return a+b;
-    }
-};
-
-class composition_v2
-{
-public:
     template <typename T>
-    T add(T const a, T const b)
+    class wrapper
     {
-        return a + b;
+    public:
+        wrapper(T const v): value(v)
+        {}
+
+        T const& get() const { return value; }
+
+    private:
+        T value;
+    };
+
+    // template <typename T = int>
+    // class wrapper;
+
+    void use_wrapper(wrapper<int>* ptr)
+    {
+        std::cout << ptr->get() << std::endl;
     }
-};
+}
 
 template <int V>
 class boo
@@ -268,13 +248,17 @@ int main()
         // std::cout << "odds: " << odds << std::endl;
     }
 
-    std::cout << "Defining class templates" << std::endl;
+    /// Defining class templates
     {
-        wrapper wa(42);
-        wrapper<int> wb(42);
-        wrapper<short> wc(42);
-        wrapper<double> we(42.0);
-        wrapper wf("42");
+        using namespace definingClassTemplates;
+
+        wrapper a(42);
+        wrapper<int> b(42);
+        wrapper<short> c(42);
+        wrapper<double> d(42.0);
+        wrapper e("42");
+
+        use_wrapper(&a);
     }
 
     std::cout << "Defining member function templates" << std::endl;
