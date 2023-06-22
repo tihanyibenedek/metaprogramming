@@ -214,73 +214,76 @@ namespace understandingTemplateParameters
     }
 }
 
-
-};
-
-template <typename T>
-class simple_wrapper
+namespace understandingTemplateParameters::templateTemplateParameters
 {
-public:
-    T value;
-};
-
-template <typename T>
-class fancy_wrapper
-{
-public:
-    fancy_wrapper(T const v): value(v) { }
-
-    T const& get() const { return value; }
-
-    template <typename U>
-    U as() const
+    template <typename T>
+    class simple_wrapper
     {
-        return static_cast<U>(value);
-    }
-private:
-    T value;
-};
+    public:
+        T value;
+    };
 
-template <typename T, typename U, template<typename> typename W>
-class wrapping_pair
+    template <typename T>
+    class fancy_wrapper
+    {
+    public:
+        fancy_wrapper(T const v): value(v) { }
+
+        T const& get() const { return value; }
+
+        template <typename U>
+        U as() const
+        {
+            return static_cast<U>(value);
+        }
+    private:
+        T value;
+    };
+
+    template <typename T, typename U, template<typename> typename W>
+    class wrapping_pair
+    {
+    public:
+        wrapping_pair(T const a, U const b) :
+            item1(a),
+            item2(b)
+            { }
+        
+        W<T> item1;
+        W<U> item2;
+    };
+}
+
+namespace understandingTemplateParameters::defaultTemplateArguments
 {
-public:
-    wrapping_pair(T const a, U const b) :
-        item1(a),
-        item2(b)
-        { }
+    template <typename T = int>
+    class foo
+    { };
+
+    template <typename T = int, typename U = double>
+    class bar 
+    { };
+
+    // template <typename T = int, typename U> /// Error
+    // class foo3
+    // { };
     
-    W<T> item1;
-    W<U> item2;
-};
+    template <typename T = int, typename U>
+    void func() {}
 
-template <typename T = int>
-class foo2
-{ };
+    template <typename T, typename U = double>
+    struct baz;
 
-template <typename T = int, typename U = double>
-class bar 
-{ };
+    template <typename T = int, typename U>
+    struct baz;
 
-// template <typename T = int, typename U> /// Error
-// class foo3
-// { };
-
-template <typename T = int, typename U>
-void func() {}
-
-template <typename T, typename U = double>
-struct foo3;
-
-template <typename T = int, typename U>
-struct foo3;
-
-template <typename T, typename U>
-struct foo3
-{   
-    T a;
-    U b;
-};
+    template <typename T, typename U>
+    struct baz
+    {   
+        T a;
+        U b;
+    };
+}
 
 
 
@@ -373,6 +376,10 @@ int main()
         // foo<42, 42.0, false, 'X'> f;
     }
 
+    /// Template template parameters
+    {
+        using namespace understandingTemplateParameters::templateTemplateParameters;
+        
         wrapping_pair<int, double, fancy_wrapper> p1(42, 42.0);
         std::cout << p1.item1.get() << " " << p1.item2.get() << std::endl;
 
@@ -380,5 +387,9 @@ int main()
         // std::cout << p2.item1.value << " " << p2.item2.value << std::endl;
     }
 
+    /// Default template arguments
+    {
+
+    }
     return 0;
 }
