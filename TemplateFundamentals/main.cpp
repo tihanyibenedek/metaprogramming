@@ -102,70 +102,118 @@ namespace definingMemberFunctionTemplates
     };
 }
 
-
-// template <>
-// class buffer<int, 10>
-// {
-//     int data_[10];
-// public:
-//     constexpr int* data() const;
-//     constexpr int& operator[] (const size_t index);
-//     constexpr const int& operator[] (const size_t index) const;
-// };
-
-struct device
+namespace understandingTemplateParameters
 {
-    virtual void output() = 0;
-    virtual ~device() {}
-};
-
-template <void (*action) ()>
-struct smart_device : device
-{
-    void output() override
+    namespace typeTemplateParameters
     {
-        (*action)();
-    }
-};
+        template <typename>
+        class wrapper;
 
-void say_hello_in_english()
-{
-    std::cout << "Hello, World!" << std::endl;
+        template <typename = int>
+        class wrapper;
+
+        // template <typename... T>
+        // class wrapper;
+    }
+
+    namespace nonTypeTemplateParameters
+    {
+        template <int V>
+        class foo
+        { };
+
+        template <int V = 42>
+        class foo;
+
+        // template <int... V>
+        // class foo;
+
+        template <typename T, size_t S>
+        class buffer
+        {
+            T data_[S];
+        public:
+            constexpr T const * data() const { return data_; }
+
+            constexpr T& operator[] (size_t const index)
+            {
+                return data_[index];
+            }
+
+            constexpr T const& operator[] (size_t const index) const
+            {
+                return data_[index];
+            }
+        };
+
+        // template <>
+        // class buffer<int, 10>
+        // {
+        //     int data_[10];
+        // public:
+        //     constexpr int* data() const;
+        //     constexpr int& operator[] (const size_t index);
+        //     constexpr const int& operator[] (const size_t index) const;
+        // };
+
+        struct device
+        {
+            virtual void output() = 0;
+            virtual ~device() {}
+        };
+
+        template <void (*action) ()>
+        struct smart_device : device
+        {
+            void output() override
+            {
+                (*action)();
+            }
+        };
+
+        void say_hello_in_english()
+        {
+            std::cout << "Hello, World!" << std::endl;
+        }
+
+        void say_hello_in_spanish()
+        {
+            std::cout << "Hola Mundo!" << std::endl;
+        }
+
+        template <typename Command, void (Command::*action)()>
+        struct smart_device_new : device
+        {
+            smart_device_new(Command& command): cmd(command) { }
+            void output() override
+            {
+                (cmd.*action)();
+            }
+        private:
+            Command& cmd;
+        };
+
+        struct hello_command
+        {
+            void say_hello_in_english()
+            {
+                std::cout << "Hello World!" << std::endl;
+            }
+
+            void say_hello_in_spanish()
+            {
+                std::cout << "Hola Mundo!" << std::endl;
+            }
+        };
+
+        // template <auto... X>
+        // struct foo
+        // {
+
+        // };
+    }
 }
 
-void say_hello_in_spanish()
-{
-    std::cout << "Hola Mundo!" << std::endl;
-}
-
-template <typename Command, void (Command::*action)()>
-struct smart_device_new : device
-{
-    smart_device_new(Command& command): cmd(command) { }
-    void output() override
-    {
-        (cmd.*action)();
-    }
-private:
-    Command& cmd;
-};
-
-struct hello_command
-{
-    void say_hello_in_english()
-    {
-        std::cout << "Hello World!" << std::endl;
-    }
-
-    void say_hello_in_spanish()
-    {
-        std::cout << "Hola Mundo!" << std::endl;
-    }
-};
-
-template <auto... X>
-struct fooo
-{
 
 };
 
@@ -288,8 +336,10 @@ int main()
         auto d3 = wda.as<int>();
     }
 
-    std::cout << "Understanding template parameters" << std::endl;
+    /// Understanding template parameters
     {
+        using namespace understandingTemplateParameters::nonTypeTemplateParameters;
+
         buffer<int, 10> b1;
         buffer<int, 2*5> b2;
         buffer<int, 3*5> b3;
@@ -320,7 +370,8 @@ int main()
         auto ww2 = std::make_unique<smart_device_new<hello_command, &hello_command::say_hello_in_spanish>>(cmd);
         ww2->output();
 
-        // fooo<42, 42.0, false, 'X'> f;
+        // foo<42, 42.0, false, 'X'> f;
+    }
 
         wrapping_pair<int, double, fancy_wrapper> p1(42, 42.0);
         std::cout << p1.item1.get() << " " << p1.item2.get() << std::endl;
