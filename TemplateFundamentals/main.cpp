@@ -61,35 +61,47 @@ namespace definingClassTemplates
     }
 }
 
-template <int V>
-class boo
+namespace definingMemberFunctionTemplates
 {
-
-};
-
-template <int V = 42>
-class boo;
-
-// template <int... V>
-// class boo;
-
-template <typename T, size_t S>
-class buffer
-{
-    T data_[S];
-public:
-    constexpr T const * data() const { return data_; }
-
-    constexpr T& operator[] (size_t const index)
+    template <typename T>
+    class composition_v1
     {
-        return data_[index];
-    }
+    public:
+        T add(T const a, T const b)
+        {
+            return a+b;
+        }
+    };
 
-    constexpr T const& operator[] (size_t const index) const
+    class composition_v2
     {
-        return data_[index];
-    }
-};
+    public:
+        template <typename T>
+        T add(T const a, T const b)
+        {
+            return a + b;
+        }
+    };
+
+    template <typename T>
+    class wrapper
+    {
+    public:
+        wrapper(T const v): value(v)
+        {}
+
+        T const& get() const { return value; }
+
+        template <typename U>
+        U as() const
+        {
+            return static_cast<U>(value);
+        }
+    private:
+        T value;
+    };
+}
+
 
 // template <>
 // class buffer<int, 10>
@@ -261,8 +273,10 @@ int main()
         use_wrapper(&a);
     }
 
-    std::cout << "Defining member function templates" << std::endl;
+    // Defining member function templates
     {
+        using namespace definingMemberFunctionTemplates;
+
         composition_v1<int> c1;
         c1.add(42, 21);
 
