@@ -2,36 +2,39 @@
 #include <type_traits>
 #include <memory>
 
-template<typename T>
-T add(T const a, T const b)
+namespace definingFunctionTemplates
 {
-    return a + b;
-}
-
-class foo
-{
-    int value;
-public:
-    explicit foo (int const i) : value(i)
-    { }
-    explicit operator int() const { return value; }
-};
-
-foo operator+ (foo const a, foo const b)
-{
-    return foo(int(a)+int(b));
-}
-
-template<typename Input, typename Predicate>
-int count_if(Input start, Input end, Predicate p)
-{
-    int total = 0;
-    for (Input i = start; i != end; i++)
+    template<typename T>
+    T add(T const a, T const b)
     {
-        if (p(*i))
-            total++;
+        return a + b;
     }
-    return total;
+
+    class foo
+    {
+        int value;
+    public:
+        explicit foo (int const i) : value(i)
+        { }
+        explicit operator int() const { return value; }
+    };
+    
+    foo operator+ (foo const a, foo const b)
+    {
+        return foo(int(a)+int(b));
+    }
+
+    template<typename Input, typename Predicate>
+    int count_if(Input start, Input end, Predicate p)
+    {
+        int total = 0;
+        for (Input i = start; i != end; i++)
+        {
+            if (p(*i))
+                total++;
+        }
+        return total;
+    }
 }
 
 template <typename T>
@@ -243,8 +246,10 @@ struct foo3
 
 int main()
 {
-    std::cout << "Defining function templates" << std::endl;
+    /// "Defining function templates"
     {
+        using namespace definingFunctionTemplates;
+
         auto a = add(42, 21);
         auto b = add<int>(42, 21);
         auto c = add<>(42, 21);
@@ -254,7 +259,7 @@ int main()
         // auto f = add(42.0, 21);  template argument deduction/substitution failed: 
         auto f = add<double>(42.0, 21);
 
-        auto f2 = add(foo(42), foo(21));
+        auto g = add(foo(42), foo(21));
 
         int arr[] {1,1,2,3,5,8,11};
         int odds = count_if(std::begin(arr), std::end(arr), [](int const n){
