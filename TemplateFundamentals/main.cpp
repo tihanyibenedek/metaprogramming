@@ -518,6 +518,58 @@ namespace understandingTemplateSpecialization::partialSpecialization
     }
 }
 
+namespace definingVariableTemplates
+{
+    template <typename T>
+    constexpr T PI = T(3.1415926535897932385L);
+
+    template <typename T>
+    T sphere_volume(T const r)
+    {
+        return 4 * PI<T> * r * r * r / 3;
+    }
+
+    template <typename T>
+    constexpr T SEPARATOR = '\n';
+
+    template <>
+    constexpr wchar_t SEPARATOR<wchar_t> = L'\n';
+
+    template <typename T>
+    std::basic_ostream<T>& show_parts(std::basic_ostream<T>& s, std::basic_string_view<T> const& str)
+    {
+        using size_type = typename std::basic_string_view<T>::size_type;
+        size_type start = 0;
+        size_type end;
+
+        do
+        {
+            end = str.find(SEPARATOR<T>, start);
+            s << '[' << str.substr(start, end - start) << ']' << SEPARATOR<T>;
+            start = end+1;
+        } while (end != std::string::npos);
+        return s;
+    }
+
+    struct match_constant
+    {
+        template<class T>
+        static const T PI;  // not static constexpr
+    };
+    
+    template <class T>
+    const T match_constant::PI = T(3.1415926535897932385L);
+
+    template <typename T>
+    struct is_floating_point
+    {
+        constexpr static bool value = false;
+    };
+
+    template <typename T>
+    inline constexpr bool is_floating_point_v = is_floating_point<T>::value;
+}
+
 int main()
 {
     /// "Defining function templates"
@@ -713,6 +765,17 @@ int main()
         std::array<char, 9> str;
         std::strcpy(str.data(), "template");
         realWorldExample::pretty_print(std::cout, str);
+    }
+    
+    /// Defining variable templates
+    {
+        using namespace definingVariableTemplates;
+
+        show_parts<char>(std::cout, "one\ntwo\nthree");
+        show_parts<wchar_t>(std::wcout, L"one line");
+
+        std::cout << is_floating_point<float>::value << std::endl;
+        std::cout << is_floating_point_v<float> << std::endl;
     }
     return 0;
 }
