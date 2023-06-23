@@ -1,6 +1,9 @@
 #include <iostream>
 #include <type_traits>
 #include <memory>
+// #include "source1.cpp"
+// #include "source2.cpp"
+// #include "wrapper.h"
 
 namespace definingFunctionTemplates
 {
@@ -285,7 +288,83 @@ namespace understandingTemplateParameters::defaultTemplateArguments
     };
 }
 
+namespace understandingTemplateInstantiation::implicitInstantiation
+{
+    template <typename T>
+    struct foo
+    {
+        void f() {}
+        void g() {int a = 42;}
+    };
 
+    template<>
+    struct foo<int>
+    {
+        inline void f() {}
+    };
+
+    template <typename T>
+    struct control
+    { };
+
+    template <typename T>
+    struct button : public control<T>
+    { };
+
+    void show(button<int>* ptr)
+    {
+        control<int>*c = ptr;
+    }
+
+    template <typename T>
+    struct bar  
+    {
+        static T data;
+    };
+    
+    template <typename T> T bar<T>::data = 0;
+}
+
+namespace understandingTemplateInstantiation::explicitInstantiation
+{
+    namespace ns
+    {
+        template <typename T>
+        struct wrapper
+        {
+            T value;
+        };
+
+        template struct wrapper<int>;
+    }
+    template struct ns::wrapper<double>;
+
+    namespace ns 
+    {
+        template <typename T>
+        T add(T const a, T const b)
+        {
+            return a+b;
+        }
+
+        template int add(int, int);
+    }
+    template double ns::add(double, double);
+
+    template <typename T>
+    class foo
+    {
+        struct bar {};
+
+        T f(bar const arg)
+        {
+            return {};
+        }
+    };
+    template int foo<int>::f(foo<int>::bar);
+
+
+}
 
 int main()
 {
@@ -391,5 +470,43 @@ int main()
     {
 
     }
+
+    
+    /// Understanding template instantiation
+
+    // Implicit instantiation
+    {
+        using namespace understandingTemplateInstantiation::implicitInstantiation;
+
+        foo<int> x;
+        x.f();
+
+        foo<int>* p;
+        foo<double>* q;
+        q->g();
+
+        bar<int> a;
+        bar<double> b;
+        bar<double> c;
+
+        std::cout << a.data << std::endl;
+        std::cout << b.data << std::endl;
+        std::cout << c.data << std::endl;
+
+        b.data = 42;
+
+        std::cout << a.data << std::endl;
+        std::cout << b.data << std::endl;
+        std::cout << c.data << std::endl;
+
+    }
+
+    // Explicit instantiation
+    {
+        // using namespace understandingTemplateInstantiation::explicitInstantiation::explicitInstantiationDeclaration;
+
+        // wrapper<int> a{0};
+    }
+
     return 0;
 }
