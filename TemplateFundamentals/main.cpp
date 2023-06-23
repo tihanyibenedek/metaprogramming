@@ -7,6 +7,8 @@
 #include <string>
 #include <array>
 #include <cstring>
+#include <map>
+#include <vector>
 
 namespace definingFunctionTemplates
 {
@@ -570,6 +572,18 @@ namespace definingVariableTemplates
     inline constexpr bool is_floating_point_v = is_floating_point<T>::value;
 }
 
+namespace definingAliasTemplates
+{
+    template <typename T>
+    using customer_address_t = std::map<int, std::vector<T>>;
+
+    struct delivery_address_t {};
+    struct invoice_address_t {};
+
+    using customer_delivery_adress_t = customer_address_t<delivery_address_t>;
+    using customer_invoice_address_t = customer_address_t<invoice_address_t>;
+}
+
 int main()
 {
     /// "Defining function templates"
@@ -777,5 +791,11 @@ int main()
         std::cout << is_floating_point<float>::value << std::endl;
         std::cout << is_floating_point_v<float> << std::endl;
     }
+    
+    /// Defining variable templates
+    {
+        using namespace definingAliasTemplates;
+    }
+
     return 0;
 }
