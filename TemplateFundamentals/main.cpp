@@ -4,6 +4,9 @@
 // #include "source1.cpp"
 // #include "source2.cpp"
 // #include "wrapper.h"
+#include <string>
+#include <array>
+#include <cstring>
 
 namespace definingFunctionTemplates
 {
@@ -366,6 +369,155 @@ namespace understandingTemplateInstantiation::explicitInstantiation
 
 }
 
+namespace understandingTemplateSpecialization::explicitSpecialization
+{
+    template <typename T>
+    struct is_floating_point
+    {
+        constexpr static bool value = false;
+    };
+
+    template <>
+    struct is_floating_point<float>
+    {
+        constexpr static bool value = true;
+    };
+
+    template <>
+    struct is_floating_point<double>
+    {
+        constexpr static bool value = true;
+    };
+
+    template <>
+    struct is_floating_point<long double>
+    {
+        constexpr static bool value = true;
+    };
+
+    template <typename T>
+    struct foo
+    {
+        static T value;
+    };
+    template <typename T> T foo<T>::value = 0;
+    template <> int foo<int>::value = 42;
+    
+    namespace incompleteType
+    {
+        template <typename>
+        struct foo {}; // primary template
+
+        template <>
+        struct foo<int>; // explicit specialization template
+    }
+
+    namespace deduceTemplateArguemnt
+    {
+        template <typename T>
+        struct foo {};
+
+        template <typename T>
+        void func(foo<T>)
+        {
+            std::cout << "primary template" << std::endl;
+        }
+
+        template <>
+        void func<int>(foo<int>) // void func(foo<int>)
+        {
+            std::cout << "int specialization" << std::endl;
+        }
+    }
+
+    namespace multipleArguments
+    {
+        template <typename T, typename U>
+        void func(T a, U b)
+        {
+            std::cout << "primary template" << std::endl;
+        }
+
+        template <>
+        void func(int a, int b)
+        {
+            std::cout << "int - int specialization" << std::endl;
+        }
+
+        template <>
+        void func(int a, double b)
+        {
+            std::cout << "int - double specialization" << std::endl;
+        }
+    }
+}
+namespace understandingTemplateSpecialization::partialSpecialization
+{
+    template <typename T, int S> // two template arguments: a type template argument and a non-type template argument
+    struct collection
+    {
+        void operator()()
+        {
+            std::cout << "primary template" << std::endl;
+        }
+    };
+
+    template <typename T>
+    struct collection<T, 10>
+    {
+        void operator()()
+        {
+            std::cout << "partial specialization <T, 10>" << std::endl;
+        }
+    };
+
+    template <int S>
+    struct collection<int, S>
+    {
+        void operator()()
+        {
+            std::cout << "partial specializtaio <int, S>" << std::endl;
+        }
+    };
+
+    template <typename T, int S>
+    struct collection<T*, S>
+    {
+        void operator()()
+        {
+            std::cout << "partial specialization <T*, S" << std::endl;
+        }
+    };
+
+    namespace realWorldExample
+    {
+        template <typename T, size_t S>
+        std::ostream& pretty_print(std::ostream& os, std::array<T,S> const& arr)
+        {
+            os << '[';
+            if (S > 0)
+            {
+                size_t i = 0;
+                for (; i < S -1; ++i)
+                    os << arr[i] << ',';
+                os << arr[S-1];
+            }
+            os << ']';
+            return os;
+        }
+
+        template <size_t S>
+        std::ostream& pretty_print(std::ostream& os, std::array<char, S> const& arr)
+        {
+            os << '[';
+            for (auto const& e : arr)
+                os << e;
+            os << ']';
+            return os;
+        }
+    }
+}
+
 int main()
 {
     /// "Defining function templates"
@@ -508,5 +660,59 @@ int main()
         // wrapper<int> a{0};
     }
 
+
+    /// Understanding template specialization
+
+    // Explicit specialization
+    {
+        using namespace understandingTemplateSpecialization::explicitSpecialization;
+
+        std::cout << is_floating_point<int>::value << std::endl;
+        std::cout << is_floating_point<float>::value << std::endl;
+        std::cout << is_floating_point<double>::value << std::endl;
+        std::cout << is_floating_point<long double>::value << std::endl;
+        std::cout << is_floating_point<std::string>::value << std::endl;
+
+        foo<double> a, b;
+        foo<int> c;
+
+        std::cout << a.value << std::endl;
+        std::cout << b.value << std::endl;
+        std::cout << c.value << std::endl;
+
+        a.value = 100;
+
+        std::cout << a.value << std::endl;
+        std::cout << b.value << std::endl;
+        std::cout << c.value << std::endl;
+
+        incompleteType::foo<double> ia;
+        incompleteType::foo<int*> ib;
+        // incompleteType::foo<int> ic; // error, foo<int> incomplete type
+
+        multipleArguments::func(1, 2); // int - int spec
+        multipleArguments::func(1, 2.0); // int - double spec
+        multipleArguments::func(1.0, 2.0); // primary 
+
+    }
+
+    // Partial specialization
+    {
+        using namespace understandingTemplateSpecialization::partialSpecialization;
+
+        collection<char, 42> a; // primary template
+        collection<int, 42> b; // partial specialization <int, S>
+        collection<char, 10> c; // partial specialization <T, 10>
+        collection<int*, 20> d; // partial specialization <T*, S>
+
+        // collection<int, 10> e; // error: collection<T,10> or collection<int,S>
+        // collection<int*, 10> f;  // error: collection<T,10> or collection<T*,S>
+
+        std::array<int,9> arr {1,1,2,3,5,8,13,21};
+        realWorldExample::pretty_print(std::cout, arr);
+        std::array<char, 9> str;
+        std::strcpy(str.data(), "template");
+        realWorldExample::pretty_print(std::cout, str);
+    }
     return 0;
 }
