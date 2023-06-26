@@ -797,5 +797,13 @@ int main()
         using namespace definingAliasTemplates;
     }
 
+    /// Defining alias templates
+    {
+        using index_t = int;
+        using NameValueList = std::vector<std::pair<int, std::string>>;
+        using fn_ptr = int (*)(int, char);
+
+    }
+
     return 0;
 }
