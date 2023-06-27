@@ -111,6 +111,146 @@ namespace parameterPacks
     func_pair<bool(int, int), double(int, int, double)> funcs { twice_as, sum_and_div };
 }
 
+namespace understandingParameterPacksExpansion
+{
+    // Template Parameter List
+    template <typename... T>
+    struct outer
+    {
+        template <T... args>
+        struct inner { };
+    };
+    
+    // Template Argument List
+    template <typename... T>
+    struct tag {};
+
+    template <typename T, typename U, typename... Args>
+    void tagger()
+    {
+        tag<T, U, Args...> t1;
+        tag<T, Args..., U> t2;
+        tag<Args..., T, U> t3;
+        tag<U, T, Args...> t4;
+    }
+
+    // Funtion Parameter List
+    template <typename... Args>
+    void make_it(Args... args)
+    { }
+
+    // Function Argument List
+    template <typename T>
+    T step_it(T value)
+    {
+        return value+1;
+    }
+
+    template <typename... T>
+    int sum(T... args)
+    {
+        return (... + args);
+    }
+
+    template <typename ...T>
+    void do_sums(T... args)
+    {
+        auto s1 = sum(args...);
+        // sum(1,2,3,4);
+
+        auto s2 = sum(42, args...);
+        // sum(42,1,2,3,4)
+
+        auto s3 = sum(step_it(args)...);
+        // sum(step_it(1), step_it(2), ...., step_it(4))
+    }
+
+    // Parenthesized initializers
+    template <typename... T>
+    struct sum_wrapper
+    {
+        sum_wrapper(T... args)
+        {
+            value = (... + args);
+        }
+
+        std::common_type_t<T...> value;
+    };
+
+    template <typename ...T>
+    void paranthesized(T... args)
+    {
+        std::array<std::common_type_t<T...>,sizeof...(T)>{args...};
+        // std::array<int, 4> {1,2,3,4};
+
+        sum_wrapper sw1(args...);
+        // value = 1 + 2 + 3 + 4;
+
+        sum_wrapper sw2(++args...);
+        // value = 2 + 3 + 4 + 5;
+    }
+
+    // Brace-enclosed initializers
+    template <typename... T>
+    void brace_enclosed(T... args)
+    {
+        int arr1[sizeof...(args)+1] = {args..., 0};
+        // arr1 = {1,2,3,4,0};
+
+        int arr2[sizeof...(args)] = {step_it(args)...};
+        // arr2 = {2,3,4,5}
+    }
+
+    // Base specifiers and member initializer lists
+    struct A 
+    {
+        void execute() { std::cout << "A::execuce" << std::endl; }
+    };
+    struct B 
+    {
+        void execute() { std::cout << "B::execuce" << std::endl; }
+    };
+    struct C 
+    {
+        void execute() { std::cout << "C::execuce" << std::endl; }
+    };
+
+    template <typename... Bases>
+    struct X : public Bases...
+    {
+        X(Bases const & ...args) : Bases(args)...
+        { }
+
+        using Bases::execute...;
+    };
+
+    // Using declarations
+
+    // Lambda captures
+    template <typename... T>
+    void captures(T... args)
+    {
+        auto l = [args...] {return sum(step_it(args)...);};
+        auto s = l();
+    }
+
+    // Fold expressions
+        // Examples have already been shown earlier
+    
+    // Alignment specifier
+    template <typename... T>
+    struct alignment1
+    {
+        alignas(T...) char a;
+    };
+
+    template <int... args>
+    struct alignment2
+    {
+        alignas(args...) char a;
+    };
+}
+
 int main()
 {
     /// Understanding the need for variadic templates
@@ -153,6 +293,36 @@ int main()
 
         std::cout << "funcs.f: " << funcs.f(42, 12) << std::endl;
         std::cout << "funcs.g: " << funcs.g(42, 12, 10.0) << std::endl;
+    }
+
+    /// Understanding parameter packs expansion
+    {
+        using namespace understandingParameterPacksExpansion;
+
+        // outer<int, float, char[5]> a; 
+
+        make_it(42);
+        make_it(42, 'a');
+
+        do_sums(1,2,3,4);
+
+        paranthesized(1,2,3,4);
+
+        brace_enclosed(1,2,3,4);
+
+        A a;
+        B b;
+        C c;
+        X x(a, b, c);
+
+        x.A::execute();
+        x.B::execute();
+        x.C::execute();
+
+        captures(1,2,3,4);
+
+        alignment1<int, double> al1;
+        alignment2<1, 4, 8> sl2;
     }
 
     return 0;
