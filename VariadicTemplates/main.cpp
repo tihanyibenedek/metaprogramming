@@ -318,6 +318,54 @@ namespace variadicClassTemplates
     }
 }
 
+namespace foldExpressions
+{
+    namespace previously
+    {
+        template <typename T>
+        T sum(T a)
+        {
+            return a;
+        }
+
+        template <typename T, typename... Args>
+        T sum(T a, Args... args)
+        {
+            return a + sum(args...);
+        }
+    }
+
+    template <typename... T>
+    int sum(T... args)
+    {
+        return (... + args);
+    }
+
+    template <typename... T>
+    int sum_from_zero(T... args)
+    {
+        return (0 + ... + args);
+    }
+
+    template <typename... T>
+    void printl(T... args)
+    {
+        (...,(std::cout << args)) << std::endl;
+    }
+
+    template <typename... T>
+    void printr(T... args)
+    {
+        ((std::cout << args), ...) << std::endl;
+    }
+
+    template <typename T, typename... Args>
+    void push_back_many(std::vector<T>& v, Args&&... args)
+    {
+        (v.push_back(args),...);
+    }
+}
+
 int main()
 {
     /// Understanding the need for variadic templates
@@ -407,5 +455,24 @@ int main()
         tuple<int, double, char> three2 (42, 42.0, 'a');
         std::cout << "get<2>: " << get<2>(three2) << std::endl;
     }
+    
+    /// Fold expressions
+    {
+        using namespace foldExpressions;
+
+        std::cout << sum(1) << std::endl;
+        std::cout << sum(1, 2) << std::endl;
+        std::cout << sum(1, 2, 3, 4, 5, 6) << std::endl;
+
+        // sum();
+        sum_from_zero();
+
+        printl('d', 'o', 'g');
+        printr('d', 'o', 'g');
+
+        std::vector<int> v;
+        push_back_many(v, 1, 2, 3, 4, 5); 
+    }
+
     return 0;
 }
