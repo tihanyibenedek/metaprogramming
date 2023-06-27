@@ -399,6 +399,12 @@ namespace variadicAliasTemplates
     using index_sequence_for = make_index_sequence<sizeof...(T)>;
 }
 
+namespace variadicVariableTemplates
+{
+    template <int... R>
+    constexpr int Sum = (... + R);
+}
+
 int main()
 {
     /// Understanding the need for variadic templates
@@ -518,5 +524,16 @@ int main()
         static_assert(std::is_same_v<decltype(f2), decltype(f3)>);
     }
 
+    /// Variadic variable templates
+    {
+        using namespace variadicVariableTemplates;
+
+        std::cout << Sum<1> << std::endl;
+        std::cout << Sum<1,2> << std::endl;
+        std::cout << Sum<1,2,3,4,5> << std::endl;
+
+        
+    }
+    
     return 0;
 }
