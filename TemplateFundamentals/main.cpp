@@ -9,6 +9,9 @@
 #include <cstring>
 #include <map>
 #include <vector>
+#include <algorithm>
+#include <numeric>
+#include <functional>
 
 namespace definingFunctionTemplates
 {
@@ -584,6 +587,11 @@ namespace definingAliasTemplates
     using customer_invoice_address_t = customer_address_t<invoice_address_t>;
 }
 
+namespace exploringGenericLambdasAndLambdaTemplates
+{
+
+}
+
 int main()
 {
     /// "Defining function templates"
@@ -795,6 +803,99 @@ int main()
     /// Defining variable templates
     {
         using namespace definingAliasTemplates;
+    }
+
+    /// Defining alias templates
+    {
+        using index_t = int;
+        using NameValueList = std::vector<std::pair<int, std::string>>;
+        using fn_ptr = int (*)(int, char);
+
+    }
+
+    /// Exploring generic lambdas and lambda templates
+    {
+        int arr[] = {1,6,3,8,4,2,9};
+        std::sort(std::begin(arr), std::end(arr), 
+        [](int const a, int const b){ return b > a; });
+
+        int pivot = 5;
+        auto count = std::count_if(std::begin(arr), std::end(arr), [pivot](int const a){ return a > pivot;});
+
+        struct __lambda_1
+        {
+            inline bool operator() (const int a, const int b ) const 
+            {
+                return a > b;
+            }
+        };
+
+        struct __lambda_2
+        {
+            __lambda_2(int& _pivot) : pivot(_pivot) { }
+
+            inline bool operator() (const int a) const
+            {
+                return a > pivot;
+            }
+        private:
+            int pivot;
+        };
+
+        auto l1 =  [](int a) { return a + a; }; // C++11, regular lambda
+        std::cout << "regular lambda: " <<  l1(1) << std::endl;
+        auto l2 = [](auto a ){ return a + a; };  // C++14, generic lambda
+        std::cout << "generic lambda: " <<  l2(2) << std::endl;
+        auto l3 = []<typename T, typename U>(T a, U b) { return a + b; }; // C++20, template lambda
+        std::cout << "template lambda: " <<  l3(3, 1) << std::endl;
+        auto l5 = []<typename T>(T a, T b){ return a + b; };
+        auto l4 = [](auto a, decltype(a)b) { return a + b; };
+
+        auto v1 = l1(42);
+        auto v2 = l1(42.0); // warning
+        // auto v3 = l1(std::stirng("42")); // error
+
+        auto v4 = l2(42);
+        auto v5 = l2(42.0);
+        auto v6 = l2(std::string("42"));
+
+        auto v7 = l3(42, 1);
+        auto v8 = l3(42.0, 1.0);
+        auto v9 = l3(std::string("42"), '1');
+
+        auto v10 = l5(42, 1);
+        // auto v11 = l5(42, 1.0); // error
+        auto v12 = l5(42.0, 1.0);
+        // auto v13 = l5(42.0, false); // error
+        auto v14 = l5(std::string{"42"}, std::string{"1.0"}); 
+        // auto v15 = l5(std::string{"42"}, '1'); // error
+
+        auto v15 = l4(42.0, 1);
+        auto v16 = l4(42, 1.0);
+        // auto v17 = l4(std::string{"42"}, '1'); // error 
+
+        auto l = []<typename T, size_t N>(std::array<T,N> const& arr)
+        {
+            return std::accumulate(arr.begin(), arr.end(), static_cast<T>(0));
+        };
+
+        // auto v20 = l(1); // error 
+        auto v21 = l(std::array<int, 3>{1,2,3});
+
+        std::function<int(int)> factorial;
+        factorial = [&factorial](int const n) {
+            if (n < 2) return 1;
+            else return n * factorial(n-1);
+        };
+
+        std::cout << "factorial: " << factorial(5) << std::endl;
+
+        auto factorial_t = [](auto f, int const n) {
+            if (n < 2) return 1;
+            else return n * f(f, n-1);
+        };
+
+        std::cout << "factorial_t: " << factorial_t(factorial_t, 5) << std::endl;
     }
 
     return 0;

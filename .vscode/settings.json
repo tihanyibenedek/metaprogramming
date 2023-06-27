@@ -1,4 +1,6 @@
 {
+    "C_Cpp.errorSquiggles": "enabled",
+    "C_Cpp.default.cppStandard": "c++17",
     "files.associations": {
         "ostream": "cpp",
         "iostream": "cpp",
@@ -43,6 +45,8 @@
         "numbers": "cpp",
         "stdexcept": "cpp",
         "streambuf": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "cstring": "cpp",
+        "map": "cpp"
     }
 }
